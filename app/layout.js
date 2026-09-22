@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Hello World",
-  description: "A minimal Next.js hello world app",
+  title: "Best Movies 2000–2010",
+  description: "Movies loaded from Supabase",
 };
 
 export default function RootLayout({ children }) {
