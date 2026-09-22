@@ -1,6 +1,13 @@
-# Hello World
+# Best Movies 2000–2010
 
-A minimal Next.js app that displays `hello world`.
+A Next.js app that displays rows from the Supabase `Best_2000-2010_movies` table.
+
+Create `.env.local` with:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-publishable-or-anon-key
+```
 
 ## Run locally
 
