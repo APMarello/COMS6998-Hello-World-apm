@@ -1,3 +1,5 @@
+import MovieTable from "./MovieTable";
+
 export const dynamic = "force-dynamic";
 
 const TABLE_NAME = "Best_2000-2010_movies";
@@ -18,12 +20,6 @@ async function getMovies() {
 
   if (!response.ok) throw new Error(`Supabase returned ${response.status}.`);
   return response.json();
-}
-
-function cellValue(value) {
-  if (value === null || value === undefined) return "—";
-  if (typeof value === "object") return JSON.stringify(value);
-  return String(value);
 }
 
 export default async function Home() {
@@ -49,18 +45,7 @@ export default async function Home() {
         ) : movies.length === 0 ? (
           <p className="status">No movies found in {TABLE_NAME}.</p>
         ) : (
-          <div className="table-wrap">
-            <table>
-              <thead><tr>{columns.map((column) => <th key={column} scope="col">{column.replaceAll("_", " ")}</th>)}</tr></thead>
-              <tbody>
-                {movies.map((movie, rowIndex) => (
-                  <tr key={movie.id ?? rowIndex}>
-                    {columns.map((column) => <td key={column}>{cellValue(movie[column])}</td>)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <MovieTable movies={movies} columns={columns} />
         )}
       </section>
     </main>
