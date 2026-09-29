@@ -1,5 +1,4 @@
-import MovieTable from "./MovieTable";
-import SignOutButton from "./SignOutButton";
+import DashboardTabs from "./DashboardTabs";
 import { createClient } from "../utils/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -35,24 +34,13 @@ export default async function Home() {
   return (
     <main>
       <section className="movies" aria-labelledby="page-title">
-        <div className="page-heading">
-          <div>
-            <p className="eyebrow">Supabase collection</p>
-            <h1 id="page-title">Best movies of 2000–2010</h1>
-          </div>
-          <div className="account-controls">
-            <span className="user-email">{user.email}</span>
-            <SignOutButton />
-          </div>
-        </div>
-
-        {error ? (
-          <p className="status error" role="alert">Couldn’t load the movie list: {error}</p>
-        ) : movies.length === 0 ? (
-          <p className="status">No movies found in {TABLE_NAME}.</p>
-        ) : (
-          <MovieTable movies={movies} columns={columns} />
-        )}
+        <DashboardTabs
+          movies={movies}
+          columns={columns}
+          error={error}
+          tableName={TABLE_NAME}
+          user={{ id: user.id, email: user.email, user_metadata: user.user_metadata ?? {} }}
+        />
       </section>
     </main>
   );

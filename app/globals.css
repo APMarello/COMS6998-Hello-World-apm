@@ -9,7 +9,10 @@ main { min-height: 100vh; padding: 64px 24px; }
 .account-controls { align-items: center; display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-end; }
 .user-email { color: var(--text-muted); font-size: 14px; overflow-wrap: anywhere; }
 .sign-out { background: transparent; border: 1px solid var(--border-strong); border-radius: 6px; color: var(--text); cursor: pointer; font: 700 14px Arial, Helvetica, sans-serif; padding: 9px 12px; }
-.sign-out:focus-visible, .google-login:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.profile-button { align-items: center; background: transparent; border: 0; color: var(--text-muted); cursor: pointer; display: grid; font: 700 11px Arial, Helvetica, sans-serif; gap: 4px; justify-items: center; padding: 0; text-transform: lowercase; }
+.profile-button img, .profile-placeholder { background: #bdbdb5; border: 1px solid var(--border-strong); border-radius: 50%; height: 44px; object-fit: cover; width: 44px; }
+.profile-placeholder { display: block; }
+.sign-out:focus-visible, .profile-button:focus-visible, .google-login:focus-visible, .save-profile:focus-visible, .profile-card input:focus-visible, .close-profile:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .eyebrow { color: var(--subtle); font-size: 12px; font-weight: 700; letter-spacing: .12em; margin: 0 0 12px; text-transform: uppercase; }
 h1 { font-size: clamp(32px, 5vw, 56px); letter-spacing: -.045em; line-height: 1; margin: 0 0 36px; }
 .filters { align-items: end; display: flex; flex-wrap: wrap; gap: 16px; margin: 0 0 20px; }
@@ -43,6 +46,25 @@ tbody tr:hover { background: var(--hover); }
 .movie-card dd { margin: 0; overflow-wrap: anywhere; }
 .status { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
 .error { border-color: #d99a8f; color: #d99185; }
+.profile-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; display: grid; gap: 18px; max-width: 560px; padding: 28px; }
+.profile-card h2 { font-size: 28px; letter-spacing: -.03em; margin: 0; }
+.profile-copy, .profile-email { color: var(--text-muted); line-height: 1.5; margin: 8px 0 0; }
+.profile-card label { color: var(--text-muted); display: grid; font-size: 12px; font-weight: 700; gap: 6px; letter-spacing: .04em; text-transform: uppercase; }
+.profile-card input { background: var(--surface); border: 1px solid var(--border-strong); border-radius: 6px; color: var(--text); font: 400 16px Arial, Helvetica, sans-serif; padding: 10px; }
+.profile-photo { align-items: center; display: flex; flex-wrap: wrap; gap: 14px; }
+.profile-photo img, .profile-photo > span { background: var(--surface-muted); border: 1px solid var(--border); border-radius: 50%; height: 68px; object-fit: cover; width: 68px; }
+.profile-photo > span { align-items: center; color: var(--subtle); display: inline-flex; font-size: 30px; justify-content: center; }
+.profile-photo label { color: var(--text-muted); display: grid; font-size: 12px; font-weight: 700; gap: 6px; letter-spacing: .04em; text-transform: uppercase; }
+.profile-photo input[type="file"] { border: 0; font-size: 14px; max-width: 260px; padding: 0; text-transform: none; }
+.profile-photo p { color: var(--text-muted); font-size: 13px; margin: 0; overflow-wrap: anywhere; width: 100%; }
+.remove-photo { background: transparent; border: 0; color: var(--accent); cursor: pointer; font: 700 13px Arial, Helvetica, sans-serif; padding: 4px 0; text-decoration: underline; }
+.save-profile { background: var(--accent); border: 1px solid var(--accent); border-radius: 6px; color: #1b1b1b; cursor: pointer; font: 700 14px Arial, Helvetica, sans-serif; justify-self: start; padding: 10px 14px; }
+.save-profile:disabled { cursor: wait; opacity: .7; }
+.profile-status { color: var(--accent); font-weight: 700; margin: 0; }
+.profile-prompt { align-items: center; background: color-mix(in srgb, #000 55%, transparent); display: flex; inset: 0; justify-content: center; padding: 24px; position: fixed; z-index: 10; }
+.profile-modal { position: relative; }
+.profile-prompt .profile-card { box-shadow: 0 18px 50px rgb(0 0 0 / .28); max-height: calc(100vh - 48px); overflow-y: auto; }
+.close-profile { background: var(--surface); border: 1px solid var(--border-strong); border-radius: 50%; color: var(--text); cursor: pointer; font-size: 22px; height: 32px; line-height: 1; padding: 0; position: absolute; right: -12px; top: -12px; width: 32px; z-index: 1; }
 .login-page { align-items: center; display: grid; padding: 24px; }
 .login-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin: 0 auto; max-width: 470px; padding: 36px; width: 100%; }
 .login-card h1 { margin-bottom: 18px; }
