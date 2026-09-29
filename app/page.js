@@ -1,33 +1,30 @@
-import MovieTable from "./MovieTable";
+import DashboardTabs from "./DashboardTabs";
+import { createClient } from "../utils/supabase/server";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 const TABLE_NAME = "Best_2000-2010_movies";
 
-async function getMovies() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+async function getMovies(supabase) {
+  const { data, error } = await supabase.from(TABLE_NAME).select("*");
 
-  if (!url || !key) throw new Error("Supabase environment variables are not configured.");
-
-  const response = await fetch(
-    `${url}/rest/v1/${encodeURIComponent(TABLE_NAME)}?select=*`,
-    {
-      headers: { apikey: key, Authorization: `Bearer ${key}` },
-      cache: "no-store",
-    },
-  );
-
-  if (!response.ok) throw new Error(`Supabase returned ${response.status}.`);
-  return response.json();
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export default async function Home() {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // This remains an enforcement point if middleware is ever bypassed.
+  if (!user) redirect("/login");
+
   let movies = [];
   let error = null;
 
   try {
-    movies = await getMovies();
+    movies = await getMovies(supabase);
   } catch (caughtError) {
     error = caughtError.message;
   }
@@ -37,16 +34,13 @@ export default async function Home() {
   return (
     <main>
       <section className="movies" aria-labelledby="page-title">
-        <p className="eyebrow">Supabase collection</p>
-        <h1 id="page-title">Best movies of 2000–2010</h1>
-
-        {error ? (
-          <p className="status error" role="alert">Couldn’t load the movie list: {error}</p>
-        ) : movies.length === 0 ? (
-          <p className="status">No movies found in {TABLE_NAME}.</p>
-        ) : (
-          <MovieTable movies={movies} columns={columns} />
-        )}
+        <DashboardTabs
+          movies={movies}
+          columns={columns}
+          error={error}
+          tableName={TABLE_NAME}
+          user={{ id: user.id, email: user.email, user_metadata: user.user_metadata ?? {} }}
+        />
       </section>
     </main>
   );
