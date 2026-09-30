@@ -1,46 +1,16 @@
-import DashboardTabs from "./DashboardTabs";
-import { createClient } from "../utils/supabase/server";
-import { redirect } from "next/navigation";
+import Link from "next/link";
 
-export const dynamic = "force-dynamic";
-
-const TABLE_NAME = "Best_2000-2010_movies";
-
-async function getMovies(supabase) {
-  const { data, error } = await supabase.from(TABLE_NAME).select("*");
-
-  if (error) throw new Error(error.message);
-  return data;
-}
-
-export default async function Home() {
-  const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // This remains an enforcement point if middleware is ever bypassed.
-  if (!user) redirect("/login");
-
-  let movies = [];
-  let error = null;
-
-  try {
-    movies = await getMovies(supabase);
-  } catch (caughtError) {
-    error = caughtError.message;
-  }
-
-  const columns = movies.length ? Object.keys(movies[0]) : [];
-
+export default function Home() {
   return (
-    <main>
-      <section className="movies" aria-labelledby="page-title">
-        <DashboardTabs
-          movies={movies}
-          columns={columns}
-          error={error}
-          tableName={TABLE_NAME}
-          user={{ id: user.id, email: user.email, user_metadata: user.user_metadata ?? {} }}
-        />
+    <main className="home-page">
+      <header className="home-header">
+        <Link className="home-brand" href="/">Best films, 1990s–2020s</Link>
+      </header>
+      <section className="home-hero" aria-labelledby="home-title">
+        <p className="eyebrow">A curated collection</p>
+        <h1 id="home-title">Discover the defining films of the last four decades.</h1>
+        <p>Browse standout films from the 1990s through the 2020s, filter each collection, and find your next favorite.</p>
+        <Link className="home-cta" href="/login">Sign in with Google</Link>
       </section>
     </main>
   );

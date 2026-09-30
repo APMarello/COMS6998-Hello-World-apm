@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import MovieTable from "./MovieTable";
 import ProfileForm from "./ProfileForm";
-import SignOutButton from "./SignOutButton";
+import AccountMenu from "./AccountMenu";
+import ThemeToggle from "./ThemeToggle";
 import { createClient } from "../utils/supabase/client";
 
-export default function DashboardTabs({ movies, columns, error, tableName, user }) {
+export default function DashboardTabs({ decades, user }) {
+  const [activeDecadeId, setActiveDecadeId] = useState("2000s");
   const [profile, setProfile] = useState(null);
   const [profileReady, setProfileReady] = useState(false);
   const [profileError, setProfileError] = useState("");
@@ -30,6 +32,7 @@ export default function DashboardTabs({ movies, columns, error, tableName, user 
 
   const needsProfile = profileReady && !profile && !profileError;
   const showProfile = needsProfile || isProfileOpen;
+  const activeDecade = decades.find((decade) => decade.id === activeDecadeId) ?? decades[0];
 
   function saveProfile(savedProfile) {
     setProfile(savedProfile);
@@ -38,22 +41,40 @@ export default function DashboardTabs({ movies, columns, error, tableName, user 
 
   return (
     <>
-      <div className="page-heading">
-        <div>
-          <p className="eyebrow">Supabase collection</p>
-          <h1 id="page-title">Best movies of 2000–2010</h1>
+      <div className="dashboard-topbar">
+        <div className="decade-tabs" role="tablist" aria-label="Movie decades">
+          {decades.map((decade) => (
+            <button
+              aria-controls={`decade-panel-${decade.id}`}
+              aria-selected={decade.id === activeDecade.id}
+              className="decade-tab"
+              id={`decade-tab-${decade.id}`}
+              key={decade.id}
+              onClick={() => setActiveDecadeId(decade.id)}
+              role="tab"
+              tabIndex={decade.id === activeDecade.id ? 0 : -1}
+              type="button"
+            >
+              {decade.label}
+            </button>
+          ))}
         </div>
         <div className="account-controls">
-          <span className="user-email">{user.email}</span>
-          <button className="profile-button" type="button" onClick={() => setIsProfileOpen(true)}>
-            {profile?.profile_pic ? <img src={profile.profile_pic} alt="Profile picture" /> : <span className="profile-placeholder" aria-hidden="true" />}
-            <span>profile</span>
-          </button>
-          <SignOutButton />
+          <AccountMenu email={user.email} profile={profile} onOpenProfile={() => setIsProfileOpen(true)} />
+          <ThemeToggle />
         </div>
       </div>
 
-      {error ? <p className="status error" role="alert">Couldn’t load the movie list: {error}</p> : movies.length === 0 ? <p className="status">No movies found in {tableName}.</p> : <MovieTable movies={movies} columns={columns} />}
+      <div className="page-heading">
+        <div>
+          <h1 id="page-title">The defining films of the {activeDecade.label}</h1>
+          <p className="page-subtitle">A ranked collection of standout films from the decade.</p>
+        </div>
+      </div>
+
+      <div aria-labelledby={`decade-tab-${activeDecade.id}`} id={`decade-panel-${activeDecade.id}`} role="tabpanel">
+        {activeDecade.error ? <p className="status error" role="alert">Couldn’t load the movie list: {activeDecade.error}</p> : activeDecade.movies.length === 0 ? <p className="status">No movies found in {activeDecade.tableName}.</p> : <MovieTable movies={activeDecade.movies} columns={activeDecade.columns} />}
+      </div>
 
       {showProfile && (
         <div className="profile-prompt" role="dialog" aria-modal="true" aria-labelledby="profile-prompt-title">
