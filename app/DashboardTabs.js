@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import MovieTable from "./MovieTable";
 import ProfileForm from "./ProfileForm";
 import SignOutButton from "./SignOutButton";
+import ThemeToggle from "./ThemeToggle";
 import { createClient } from "../utils/supabase/client";
 
 export default function DashboardTabs({ movies, columns, error, tableName, user }) {
@@ -50,6 +51,7 @@ export default function DashboardTabs({ movies, columns, error, tableName, user 
             <span>profile</span>
           </button>
           <SignOutButton />
+          <ThemeToggle />
         </div>
       </div>
 

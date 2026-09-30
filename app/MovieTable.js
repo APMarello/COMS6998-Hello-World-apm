@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 function cellValue(value) {
   if (value === null || value === undefined) return "—";
@@ -32,8 +32,6 @@ function genreValues(value) {
 export default function MovieTable({ movies, columns }) {
   const [sort, setSort] = useState({ column: null, direction: "asc" });
   const [view, setView] = useState("table");
-  const [theme, setTheme] = useState("light");
-  const [themeReady, setThemeReady] = useState(false);
   const [yearFilter, setYearFilter] = useState("");
   const [genreFilter, setGenreFilter] = useState("");
 
@@ -51,19 +49,6 @@ export default function MovieTable({ movies, columns }) {
       .some((genre) => genre.toLowerCase() === genreFilter.toLowerCase());
     return matchesYear && matchesGenre;
   }), [movies, yearColumn, genreColumn, yearFilter, genreFilter]);
-
-  useEffect(() => {
-    const savedTheme = window.localStorage.getItem("movie-theme");
-    const preferredTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
-    setTheme(savedTheme === "dark" || savedTheme === "light" ? savedTheme : preferredTheme);
-    setThemeReady(true);
-  }, []);
-
-  useEffect(() => {
-    if (!themeReady) return;
-    document.documentElement.dataset.theme = theme;
-    window.localStorage.setItem("movie-theme", theme);
-  }, [theme, themeReady]);
 
   const sortedMovies = useMemo(() => {
     if (!sort.column) return filteredMovies;
@@ -123,9 +108,6 @@ export default function MovieTable({ movies, columns }) {
           <button type="button" className={view === "table" ? "active" : ""} aria-pressed={view === "table"} onClick={() => setView("table")}>Table view</button>
           <button type="button" className={view === "cards" ? "active" : ""} aria-pressed={view === "cards"} onClick={() => setView("cards")}>Card view</button>
         </div>
-        <button className="theme-toggle" type="button" aria-pressed={theme === "dark"} onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}>
-          {theme === "dark" ? "Light mode" : "Dark mode"}
-        </button>
       </div>
       {view === "table" ? (
         <div className="table-wrap">

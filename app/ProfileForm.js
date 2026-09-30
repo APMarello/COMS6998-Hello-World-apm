@@ -11,10 +11,9 @@ function text(value) {
 }
 
 export default function ProfileForm({ user, profile, isOnboarding = false, onSaved, headingId }) {
-  const metadata = user.user_metadata ?? {};
-  const [firstName, setFirstName] = useState(text(profile?.first_name ?? metadata.first_name ?? metadata.given_name));
-  const [lastName, setLastName] = useState(text(profile?.last_name ?? metadata.last_name ?? metadata.family_name));
-  const [username, setUsername] = useState(text(profile?.display_name ?? metadata.display_name ?? metadata.username ?? metadata.full_name ?? metadata.name));
+  const [firstName, setFirstName] = useState(text(profile?.first_name));
+  const [lastName, setLastName] = useState(text(profile?.last_name));
+  const [username, setUsername] = useState(text(profile?.display_name));
   const [profilePic, setProfilePic] = useState(text(profile?.profile_pic));
   const [photoFile, setPhotoFile] = useState(null);
   const [removePhoto, setRemovePhoto] = useState(false);
