@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import MovieTable from "./MovieTable";
 import ProfileForm from "./ProfileForm";
-import SignOutButton from "./SignOutButton";
+import AccountMenu from "./AccountMenu";
 import ThemeToggle from "./ThemeToggle";
 import { createClient } from "../utils/supabase/client";
 
@@ -42,15 +42,11 @@ export default function DashboardTabs({ movies, columns, error, tableName, user 
       <div className="page-heading">
         <div>
           <p className="eyebrow">Supabase collection</p>
-          <h1 id="page-title">Best movies of 2000–2010</h1>
+          <h1 id="page-title">The defining films<br />of 2000–2010</h1>
+          <p className="page-subtitle">A ranked collection of standout films from the decade.</p>
         </div>
         <div className="account-controls">
-          <span className="user-email">{user.email}</span>
-          <button className="profile-button" type="button" onClick={() => setIsProfileOpen(true)}>
-            {profile?.profile_pic ? <img src={profile.profile_pic} alt="Profile picture" /> : <span className="profile-placeholder" aria-hidden="true" />}
-            <span>profile</span>
-          </button>
-          <SignOutButton />
+          <AccountMenu email={user.email} profile={profile} onOpenProfile={() => setIsProfileOpen(true)} />
           <ThemeToggle />
         </div>
       </div>
