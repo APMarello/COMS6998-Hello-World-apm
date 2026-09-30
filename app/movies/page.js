@@ -4,10 +4,15 @@ import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-const TABLE_NAME = "Best_2000-2010_movies";
+const DECADES = [
+  { id: "1990s", label: "1990s", tableName: "Best_1990s" },
+  { id: "2000s", label: "2000s", tableName: "Best_2000s" },
+  { id: "2010s", label: "2010s", tableName: "Best_2010s" },
+  { id: "2020s", label: "2020s", tableName: "Best_2020s" },
+];
 
-async function getMovies(supabase) {
-  const { data, error } = await supabase.from(TABLE_NAME).select("*");
+async function getMovies(supabase, tableName) {
+  const { data, error } = await supabase.from(tableName).select("*");
 
   if (error) throw new Error(error.message);
   return data;
@@ -19,25 +24,20 @@ export default async function MoviesPage() {
 
   if (!user) redirect("/login");
 
-  let movies = [];
-  let error = null;
-
-  try {
-    movies = await getMovies(supabase);
-  } catch (caughtError) {
-    error = caughtError.message;
-  }
-
-  const columns = movies.length ? Object.keys(movies[0]) : [];
+  const decadeResults = await Promise.all(DECADES.map(async (decade) => {
+    try {
+      const movies = await getMovies(supabase, decade.tableName);
+      return { ...decade, movies, columns: movies.length ? Object.keys(movies[0]) : [], error: null };
+    } catch (caughtError) {
+      return { ...decade, movies: [], columns: [], error: caughtError.message };
+    }
+  }));
 
   return (
     <main>
       <section className="movies" aria-labelledby="page-title">
         <DashboardTabs
-          movies={movies}
-          columns={columns}
-          error={error}
-          tableName={TABLE_NAME}
+          decades={decadeResults}
           user={{ id: user.id, email: user.email, user_metadata: user.user_metadata ?? {} }}
         />
       </section>

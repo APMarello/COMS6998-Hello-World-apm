@@ -1,7 +1,7 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Best Movies 2000–2010",
+  title: "Best Films, 1990s–2020s",
   description: "Movies loaded from Supabase",
 };
 

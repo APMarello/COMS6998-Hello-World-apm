@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import MovieDetailsDrawer from "./MovieDetailsDrawer";
 
 function findColumn(columns, name) {
   return columns.find((column) => column.toLowerCase() === name)
@@ -22,10 +23,13 @@ export default function MovieTable({ movies, columns }) {
   const [yearFilter, setYearFilter] = useState("");
   const [genreFilter, setGenreFilter] = useState("");
   const [sort, setSort] = useState("ranking");
+  const [selectedFilm, setSelectedFilm] = useState(null);
 
   const yearColumn = findColumn(columns, "year");
   const genreColumn = findColumn(columns, "genre");
   const directorColumn = findColumn(columns, "director");
+  const rottenTomatoesColumn = findColumn(columns, "rotten") ?? findColumn(columns, "tomato");
+  const synopsisColumn = findColumn(columns, "synopsis") ?? findColumn(columns, "plot") ?? findColumn(columns, "description");
   const rankColumn = findColumn(columns, "rank") ?? findColumn(columns, "ranking");
   const titleColumn = findColumn(columns, "title") ?? findColumn(columns, "name") ?? columns[0];
   const years = useMemo(() => [...new Set(movies.map((movie) => movie[yearColumn]).filter((year) => year !== null && year !== undefined).map(String))]
@@ -93,18 +97,28 @@ export default function MovieTable({ movies, columns }) {
             ].filter(Boolean);
 
             return (
-              <li className="movie-row" key={movie.id ?? index}>
+              <li key={movie.id ?? index}>
+                <button className="movie-row" type="button" onClick={() => setSelectedFilm({
+                  title: text(movie[titleColumn]) || "Untitled film",
+                  year: text(movie[yearColumn]),
+                  genre: text(movie[genreColumn]),
+                  director: text(movie[directorColumn]),
+                  rottenTomatoes: text(movie[rottenTomatoesColumn]),
+                  synopsis: text(movie[synopsisColumn]),
+                })}>
                 <span className="movie-rank" aria-label={`Rank ${rank}`}>{String(rank).padStart(2, "0")}</span>
-                <div className="movie-details">
-                  <h2>{text(movie[titleColumn]) || "Untitled film"}</h2>
-                  {metadata.length > 0 && <p>{metadata.join(" · ")}</p>}
-                </div>
+                <span className="movie-details">
+                  <span className="movie-title">{text(movie[titleColumn]) || "Untitled film"}</span>
+                  {metadata.length > 0 && <span className="movie-metadata">{metadata.join(" · ")}</span>}
+                </span>
                 <span className="movie-arrow" aria-hidden="true">→</span>
+                </button>
               </li>
             );
           })}
         </ol>
       )}
+      {selectedFilm && <MovieDetailsDrawer details={selectedFilm} onClose={() => setSelectedFilm(null)} />}
     </section>
   );
 }
