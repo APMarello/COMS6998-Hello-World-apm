@@ -1,14 +1,14 @@
 import LoginButton from "./LoginButton";
 
-export const metadata = { title: "Sign in | Best Films, 1990s–2020s" };
+export const metadata = { title: "Sign in | AI Humor App" };
 
 export default function LoginPage() {
   return (
     <main className="login-page">
       <section className="login-card" aria-labelledby="login-title">
-        <p className="eyebrow">Best films, 1990s–2020s</p>
-        <h1 id="login-title">Sign in to browse the collection</h1>
-        <p className="login-copy">Use your Google account to access the movie list.</p>
+        <p className="eyebrow">AI Humor App</p>
+        <h1 id="login-title">Sign in to rate AI-generated memes</h1>
+        <p className="login-copy">Use your Google account to join the fun and share your ratings.</p>
         <LoginButton />
       </section>
     </main>
