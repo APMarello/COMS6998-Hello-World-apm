@@ -1,8 +1,8 @@
 import "./globals.css";
 
 export const metadata = {
-  title: "Best Films, 1990s–2020s",
-  description: "Movies loaded from Supabase",
+  title: "AI Humor App",
+  description: "Rate AI-generated memes",
 };
 
 export default function RootLayout({ children }) {

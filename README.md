@@ -10,7 +10,10 @@ Create `.env.local` with:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=your-project-url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-publishable-or-anon-key
+GEMINI_API_KEY=your-gemini-api-key
 ```
+
+`GEMINI_API_KEY` is used only by the server to analyze a selected meme photo and generate its caption. Do not prefix it with `NEXT_PUBLIC_`.
 
 ## Run locally
 

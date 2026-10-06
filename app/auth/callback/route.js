@@ -9,7 +9,7 @@ export async function GET(request) {
     const supabase = createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) return NextResponse.redirect(new URL("/movies", origin));
+    if (!error) return NextResponse.redirect(new URL("/home", origin));
   }
 
   return NextResponse.redirect(new URL("/login?error=oauth", origin));
