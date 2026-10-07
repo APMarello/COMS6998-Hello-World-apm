@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ProfileForm from "./ProfileForm";
 import AccountMenu from "./AccountMenu";
@@ -8,10 +9,13 @@ import ThemeToggle from "./ThemeToggle";
 import { createClient } from "../utils/supabase/client";
 
 export default function AppNavigation({ user, showUpload = true }) {
+  const router = useRouter();
   const [profile, setProfile] = useState(null);
   const [profileReady, setProfileReady] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileDeleted, setProfileDeleted] = useState(false);
+  const [deletingProfile, setDeletingProfile] = useState(false);
 
   useEffect(() => {
     let isCurrent = true;
@@ -29,12 +33,42 @@ export default function AppNavigation({ user, showUpload = true }) {
     return () => { isCurrent = false; };
   }, [user.id]);
 
-  const needsProfile = profileReady && !profile && !profileError;
+  const needsProfile = profileReady && !profile && !profileError && !profileDeleted;
   const showProfile = needsProfile || isProfileOpen;
 
   function saveProfile(savedProfile) {
     setProfile(savedProfile);
+    setProfileDeleted(false);
     setIsProfileOpen(false);
+  }
+
+  async function deleteProfile() {
+    if (!window.confirm("Delete your profile? This removes your profile details, keeps your account and uploaded memes, and signs you out.")) return;
+
+    setDeletingProfile(true);
+    setProfileError("");
+    const supabase = createClient();
+    const { error: deleteError } = await supabase.from("profiles").delete().eq("id", user.id);
+
+    if (deleteError) {
+      setDeletingProfile(false);
+      setProfileError(`Couldn’t delete profile: ${deleteError.message}`);
+      setIsProfileOpen(true);
+      return;
+    }
+
+    const { error: signOutError } = await supabase.auth.signOut();
+    if (signOutError) {
+      setDeletingProfile(false);
+      setProfile(null);
+      setProfileDeleted(true);
+      setProfileError(`Profile deleted, but couldn’t sign out: ${signOutError.message}`);
+      setIsProfileOpen(true);
+      return;
+    }
+
+    router.replace("/login");
+    router.refresh();
   }
 
   return (
@@ -45,7 +79,13 @@ export default function AppNavigation({ user, showUpload = true }) {
           {showUpload && <Link className="upload-button" href="/upload">Upload</Link>}
         </div>
         <div className="account-controls">
-          <AccountMenu email={user.email} profile={profile} onOpenProfile={() => setIsProfileOpen(true)} />
+          <AccountMenu
+            email={user.email}
+            profile={profile}
+            onOpenProfile={() => setIsProfileOpen(true)}
+            onDeleteProfile={deleteProfile}
+            deletingProfile={deletingProfile}
+          />
           <ThemeToggle />
         </div>
       </div>
