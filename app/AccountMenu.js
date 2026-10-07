@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import SignOutButton from "./SignOutButton";
 
-export default function AccountMenu({ email, profile, onOpenProfile }) {
+export default function AccountMenu({ email, profile, onOpenProfile, onDeleteProfile, deletingProfile }) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -33,6 +33,9 @@ export default function AccountMenu({ email, profile, onOpenProfile }) {
         <div className="account-popover" role="dialog" aria-label="Account menu">
           <p className="account-email">{email}</p>
           <button className="account-menu-item" type="button" onClick={() => { setIsOpen(false); onOpenProfile(); }}>Profile</button>
+          <button className="account-menu-item account-menu-delete" type="button" onClick={() => { setIsOpen(false); onDeleteProfile(); }} disabled={deletingProfile}>
+            {deletingProfile ? "Deleting profile…" : "Delete profile"}
+          </button>
           <SignOutButton className="account-menu-item" />
         </div>
       )}
