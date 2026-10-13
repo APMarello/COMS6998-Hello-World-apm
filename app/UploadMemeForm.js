@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { createClient } from "../utils/supabase/client";
 
 const MEME_PHOTOS_BUCKET = "meme_photos";
@@ -292,6 +293,7 @@ export default function UploadMemeForm({ userId }) {
       {generationError && <p className="login-error" role="alert">{generationError}</p>}
       {uploadError && <p className="login-error" role="alert">{uploadError}</p>}
       {uploadStatus && <p className="profile-status" role="status">{uploadStatus}</p>}
+      {uploadStatus && <Link className="back-home" href="/home">Back to home</Link>}
     </form>
   );
 }
