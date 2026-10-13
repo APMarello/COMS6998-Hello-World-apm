@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion } from "motion/react";
+import Link from "next/link";
 import { createClient } from "../utils/supabase/client";
 
 const MEME_PHOTOS_BUCKET = "meme_photos";
@@ -237,20 +239,48 @@ export default function UploadMemeForm({ userId }) {
         {photoUploadError && <p className="login-error" role="alert">{photoUploadError}</p>}
       </fieldset>
 
-      {selectedPhotoData && (
-        <div className="selected-photo-preview">
-          <img src={selectedPhotoData.url} alt="Selected meme photo" />
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {selectedPhotoData && (
+          <motion.div
+            className="selected-photo-preview"
+            initial={{ opacity: 0, height: 0, y: -8 }}
+            animate={{ opacity: 1, height: "auto", y: 0 }}
+            exit={{ opacity: 0, height: 0, y: -8 }}
+            transition={{ duration: 0.28, ease: "easeOut" }}
+          >
+            <img src={selectedPhotoData.url} alt="Selected meme photo" />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {captions.length > 0 && (
-        <div className="caption-carousel" aria-live="polite">
-          <button type="button" className="caption-arrow" aria-label="Previous caption" onClick={() => showCaption(-1)}>←</button>
-          <output className="caption-result">{captions[captionIndex]}</output>
-          <button type="button" className="caption-arrow" aria-label="Next caption" onClick={() => showCaption(1)}>→</button>
-          <span className="caption-count">{captionIndex + 1} of {captions.length}</span>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {captions.length > 0 && (
+          <motion.div
+            className="caption-carousel"
+            aria-live="polite"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+          >
+            <button type="button" className="caption-arrow" aria-label="Previous caption" onClick={() => showCaption(-1)}>←</button>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.output
+                className="caption-result"
+                key={captions[captionIndex]}
+                initial={{ opacity: 0, x: 12 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -12 }}
+                transition={{ duration: 0.18 }}
+              >
+                {captions[captionIndex]}
+              </motion.output>
+            </AnimatePresence>
+            <button type="button" className="caption-arrow" aria-label="Next caption" onClick={() => showCaption(1)}>→</button>
+            <span className="caption-count">{captionIndex + 1} of {captions.length}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <button className="generate-caption" type="submit" disabled={!selectedPhoto || generating}>
         {generating ? "Creating prompts…" : captions.length > 0 ? "Regenerate Prompt" : "Generate Prompt"}
@@ -263,6 +293,7 @@ export default function UploadMemeForm({ userId }) {
       {generationError && <p className="login-error" role="alert">{generationError}</p>}
       {uploadError && <p className="login-error" role="alert">{uploadError}</p>}
       {uploadStatus && <p className="profile-status" role="status">{uploadStatus}</p>}
+      {uploadStatus && <Link className="back-home" href="/home">Back to home</Link>}
     </form>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion } from "motion/react";
 import { createClient } from "../utils/supabase/client";
 
 export default function MemeVoteControls({ generationId, upvotes, downvotes, currentVote }) {
@@ -44,7 +45,16 @@ export default function MemeVoteControls({ generationId, upvotes, downvotes, cur
       >
         ↑
       </button>
-      <span className="vote-total" aria-label={`Vote total: ${voteTotal}`}>{voteTotal}</span>
+      <motion.span
+        className="vote-total"
+        aria-label={`Vote total: ${voteTotal}`}
+        key={voteTotal}
+        initial={{ opacity: 0.35, scale: 0.82 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.22 }}
+      >
+        {voteTotal}
+      </motion.span>
       <button
         type="button"
         className={`vote-button ${selectedVote === -1 ? "is-selected" : ""}`}
