@@ -17,7 +17,7 @@ export default async function UploadPage() {
         <AppNavigation user={{ id: user.id, email: user.email, user_metadata: user.user_metadata ?? {} }} showUpload={false} />
         <div className="upload-page" aria-labelledby="upload-title">
           <div className="upload-header">
-            <h1 id="upload-title">Upload a meme</h1>
+            <h1 id="upload-title">Upload an AI generated meme</h1>
           </div>
           <UploadMemeForm userId={user.id} />
         </div>

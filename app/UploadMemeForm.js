@@ -209,14 +209,9 @@ export default function UploadMemeForm({ userId }) {
 
   return (
     <form className="meme-upload-form" onSubmit={submit}>
-      <label className="upload-field">
-        <span>Keywords or prompt (optional)</span>
-        <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="For example: awkward work meeting, dry humor, Monday energy" rows={4} />
-      </label>
-
       <fieldset className="photo-picker">
-        <legend>Picture</legend>
-        <p className="photo-picker-copy">Choose a photo from the meme library.</p>
+        <legend>1. Image template</legend>
+        <p className="photo-picker-copy">Choose an image from the meme library or upload your own.</p>
         {loading ? <p className="status">Loading photos…</p> : error ? <p className="status error" role="alert">{error}</p> : photos.length === 0 ? <p className="status">No photos available.</p> : (
           <div className="photo-grid">
             {photos.map((photo) => (
@@ -253,6 +248,12 @@ export default function UploadMemeForm({ userId }) {
         )}
       </AnimatePresence>
 
+      <span className="prompt-section-label">2. Add a keyword or prompt (optional)</span>
+      <label className="upload-field">
+        <span>Enter keywords or a prompt to customize your AI-generated meme.</span>
+        <textarea value={prompt} onChange={(event) => setPrompt(event.target.value)} placeholder="For example: awkward work meeting, dry humor, Monday energy" rows={4} />
+      </label>
+
       <AnimatePresence initial={false}>
         {captions.length > 0 && (
           <motion.div
@@ -282,6 +283,7 @@ export default function UploadMemeForm({ userId }) {
         )}
       </AnimatePresence>
 
+      <span className="generation-section-label">3. Generate new meme with the power of AI</span>
       <button className="generate-caption" type="submit" disabled={!selectedPhoto || generating}>
         {generating ? "Creating prompts…" : captions.length > 0 ? "Regenerate Prompt" : "Generate Prompt"}
       </button>
