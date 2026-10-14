@@ -76,7 +76,7 @@ export default function AppNavigation({ user, showUpload = true }) {
       <div className="dashboard-topbar">
         <div className="app-navigation">
           <Link className="app-logo" href="/home">AI Humor App</Link>
-          {showUpload && <Link className="upload-button" href="/upload">Upload</Link>}
+          {showUpload && <Link className="upload-button" href="/upload">Upload AI Meme</Link>}
         </div>
         <div className="account-controls">
           <AccountMenu

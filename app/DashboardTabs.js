@@ -7,6 +7,7 @@ export default function DashboardTabs({ user, generations, votes, currentPage, t
       <AppNavigation user={user} />
       <section className="meme-feed" aria-labelledby="meme-feed-title">
         <h1 id="meme-feed-title">AI Humor App</h1>
+        <p className="meme-feed-instructions">Browse the latest posts and cast your vote with an upvote or downvote.</p>
         {generationsError ? <p className="status error" role="alert">Couldn’t load memes: {generationsError}</p> : generations.length === 0 ? <p className="status">No memes have been uploaded yet.</p> : (
           <MemeFeed generations={generations} votes={votes} />
         )}
