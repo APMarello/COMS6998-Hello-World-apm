@@ -13,7 +13,15 @@ function imageMimeType(photoPath, blobType) {
 }
 
 function fillPromptTemplate(template, values) {
-  return template.replace(/{{(style_templates|keywords|caption_briefs)}}/g, (_, key) => values[key] ?? "");
+  return template.replace(/{{(style_templates|terms|keywords|caption_briefs)}}/g, (_, key) => values[key] ?? "");
+}
+
+async function finishGenerationRequest(supabase, requestId, startedAt, details) {
+  await supabase.from("ai_generation_requests").update({
+    ...details,
+    completed_at: new Date().toISOString(),
+    duration_ms: Date.now() - startedAt,
+  }).eq("id", requestId);
 }
 
 async function generateContent(image, prompt, photoPath, modelIdentifier) {
@@ -40,10 +48,6 @@ async function generateContent(image, prompt, photoPath, modelIdentifier) {
 }
 
 export async function POST(request) {
-  if (!process.env.GEMINI_API_KEY) {
-    return Response.json({ error: "Gemini is not configured yet. Add GEMINI_API_KEY to the server environment." }, { status: 503 });
-  }
-
   const supabase = createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Sign in to generate a caption." }, { status: 401 });
@@ -64,44 +68,96 @@ export async function POST(request) {
   if (![MEME_PHOTOS_BUCKET, USER_MEME_PHOTOS_BUCKET].includes(bucket)) {
     return Response.json({ error: "Choose a photo from the library." }, { status: 400 });
   }
-  const [{ data: styles, error: stylesError }, { data: chainSteps, error: chainError }] = await Promise.all([
-    supabase.from("meme_caption_styles").select("name, prompt_template, llm_models(model_identifier)").eq("is_active", true).order("sort_order", { ascending: true }),
-    supabase.from("meme_prompt_chain_steps").select("step_key, prompt_template, llm_models(model_identifier)").eq("is_active", true).order("step_order", { ascending: true }),
+  const startedAt = Date.now();
+  const { data: generationRequest, error: requestLogError } = await supabase.from("ai_generation_requests").insert({
+    user_id: user.id,
+    photo_bucket: bucket,
+    photo_path: photoPath,
+    input_keywords: keywords,
+  }).select("id").single();
+  if (requestLogError || !generationRequest) {
+    return Response.json({ error: "Couldn’t start generation logging. Please try again." }, { status: 500 });
+  }
+  const requestId = generationRequest.id;
+
+  if (!process.env.GEMINI_API_KEY) {
+    await finishGenerationRequest(supabase, requestId, startedAt, { status: "failed", error_message: "Gemini API key is not configured." });
+    return Response.json({ error: "Gemini is not configured yet. Add GEMINI_API_KEY to the server environment." }, { status: 503 });
+  }
+
+  const [{ data: styles, error: stylesError }, { data: chainSteps, error: chainError }, { data: terms, error: termsError }] = await Promise.all([
+    supabase.from("meme_caption_styles").select("name, prompt_template, llm_models(model_identifier, llm_model)").eq("is_active", true).order("sort_order", { ascending: true }),
+    supabase.from("meme_prompt_chain_steps").select("step_key, prompt_template, llm_models(model_identifier, llm_model)").eq("is_active", true).order("step_order", { ascending: true }),
+    supabase.from("terms").select("term, guidance").eq("is_active", true).order("sort_order", { ascending: true }),
   ]);
   const promptSteps = Object.fromEntries((chainSteps ?? []).map((step) => [step.step_key, step]));
+  const activeTerms = terms ?? [];
   const briefStep = promptSteps.build_caption_brief;
   const captionStep = promptSteps.generate_captions;
-  if (stylesError || chainError || styles?.length !== 5 || styles.some((style) => !style.llm_models?.model_identifier) || !briefStep?.prompt_template || !briefStep.llm_models?.model_identifier || !captionStep?.prompt_template || !captionStep.llm_models?.model_identifier) {
+  if (stylesError || chainError || termsError || styles?.length !== 5 || styles.some((style) => !style.llm_models?.model_identifier) || !briefStep?.prompt_template || !briefStep.llm_models?.model_identifier || !captionStep?.prompt_template || !captionStep.llm_models?.model_identifier) {
+    await finishGenerationRequest(supabase, requestId, startedAt, { status: "failed", error_message: "Caption prompt configuration is incomplete." });
     return Response.json({ error: "Caption prompts are not configured yet. Please try again later." }, { status: 503 });
   }
 
   const { data: image, error: downloadError } = await supabase.storage.from(bucket).download(photoPath);
   if (downloadError || !image) {
+    await finishGenerationRequest(supabase, requestId, startedAt, { status: "failed", error_message: "The selected photo could not be loaded." });
     return Response.json({ error: "The selected photo could not be loaded." }, { status: 400 });
   }
   if (image.size > 15 * 1024 * 1024) {
+    await finishGenerationRequest(supabase, requestId, startedAt, { status: "failed", error_message: "The selected photo exceeds 15 MB." });
     return Response.json({ error: "Choose a photo smaller than 15 MB." }, { status: 413 });
   }
 
   try {
-    const captionBrief = await generateContent(image, fillPromptTemplate(briefStep.prompt_template, {
+    const firstStepPrompt = fillPromptTemplate(briefStep.prompt_template, {
       style_templates: styles.map((style, index) => `${index + 1}. ${style.name}: ${style.prompt_template}`).join("\n"),
+      terms: activeTerms.length ? activeTerms.map((term) => `${term.term}: ${term.guidance}`).join("\n") : "None configured.",
       keywords: keywords || "None provided.",
-    }), photoPath, briefStep.llm_models.model_identifier);
+    });
+    await supabase.from("ai_generation_requests").update({
+      first_step_prompt: firstStepPrompt,
+      prompt_chain_inputs: {
+        keywords,
+        styles: styles.map((style) => ({ name: style.name, prompt_template: style.prompt_template })),
+        terms: activeTerms,
+      },
+      model_config: {
+        build_caption_brief: briefStep.llm_models,
+        generate_captions: captionStep.llm_models,
+      },
+      image_mime_type: imageMimeType(photoPath, image.type),
+      image_bytes: image.size,
+    }).eq("id", requestId);
+
+    const captionBrief = await generateContent(image, firstStepPrompt, photoPath, briefStep.llm_models.model_identifier);
     const captionBriefs = captionBrief.split("\n").map((brief) => brief.replace(/^\s*(?:\d+[.)-]?|[-•])\s*/, "").trim()).filter(Boolean).slice(0, 5);
     if (captionBriefs.length !== 5) throw new Error("Gemini didn't create five caption briefs.");
-
-    const generatedCaptions = await generateContent(image, fillPromptTemplate(captionStep.prompt_template, {
+    const secondStepPrompt = fillPromptTemplate(captionStep.prompt_template, {
       caption_briefs: captionBriefs.join("\n"),
-    }), photoPath, captionStep.llm_models.model_identifier);
+    });
+    await supabase.from("ai_generation_requests").update({
+      first_step_output: captionBrief,
+      second_step_prompt: secondStepPrompt,
+    }).eq("id", requestId);
+
+    const generatedCaptions = await generateContent(image, secondStepPrompt, photoPath, captionStep.llm_models.model_identifier);
     const captions = generatedCaptions
       .split("\n")
       .map((caption) => caption.replace(/^\s*(?:\d+[.)-]?|[-•])\s*/, "").trim())
       .filter(Boolean)
       .slice(0, 5);
     if (captions.length !== 5) throw new Error("Gemini did not return five captions.");
+    await finishGenerationRequest(supabase, requestId, startedAt, {
+      status: "succeeded",
+      output_captions: captions,
+    });
     return Response.json({ captions });
-  } catch {
+  } catch (error) {
+    await finishGenerationRequest(supabase, requestId, startedAt, {
+      status: "failed",
+      error_message: error instanceof Error ? error.message : "Unknown generation error.",
+    });
     return Response.json({ error: "Couldn’t reach Gemini. Please try again." }, { status: 502 });
   }
 }
