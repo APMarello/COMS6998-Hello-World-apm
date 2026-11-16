@@ -12,9 +12,10 @@ export default function LoginButton() {
     setLoading(true);
 
     const supabase = createClient();
+    const appOrigin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { data, error: signInError } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: new URL("/auth/callback", appOrigin).toString() },
     });
 
     if (signInError) {

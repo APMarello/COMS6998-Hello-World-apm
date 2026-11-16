@@ -39,8 +39,9 @@ export async function middleware(request) {
       .eq("is_active", true)
       .maybeSingle();
     let profile;
+    let profileError;
     if (allowedDomain) {
-      ({ data: profile } = await supabase
+      ({ data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("is_whitelisted")
         .eq("id", user.id)
@@ -48,7 +49,10 @@ export async function middleware(request) {
     } else {
       accessError = "domain";
     }
-    if (!allowedDomain || !profile?.is_whitelisted) {
+    // A new user can legitimately reach this request before their profile is
+    // visible. The onboarding UI creates that profile; only an explicit admin
+    // revocation should deny a user from an allowed domain.
+    if (!allowedDomain || profileError || profile?.is_whitelisted === false) {
       await supabase.auth.signOut();
       const url = request.nextUrl.clone();
       url.pathname = "/login";
