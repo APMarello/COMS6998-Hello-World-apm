@@ -2,6 +2,12 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse } from "next/server";
 
 export async function middleware(request) {
+  const { pathname } = request.nextUrl;
+
+  // The callback must reach its route handler untouched so its one-time PKCE
+  // code is exchanged exactly once and its session cookies are preserved.
+  if (pathname.startsWith("/auth/")) return NextResponse.next();
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -22,7 +28,6 @@ export async function middleware(request) {
   );
 
   const { data: { user } } = await supabase.auth.getUser();
-  const { pathname } = request.nextUrl;
 
   if (user) {
     let accessError = "whitelist";
