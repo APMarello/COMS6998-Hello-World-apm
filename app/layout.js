@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./layout-overrides.css";
 import MotionProvider from "./MotionProvider";
 
 const themeInitializationScript = `
