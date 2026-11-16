@@ -1,9 +1,3 @@
-# Best Movies 2000–2010
-
-A Next.js app that displays rows from the Supabase `Best_2000-2010_movies` table.
-
-The movie collection is protected by Supabase Auth. Visitors must sign in with
-Google before any data is loaded.
 
 Create `.env.local` with:
 
